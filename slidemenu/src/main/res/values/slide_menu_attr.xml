@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="SlideMenuListView">
+        <!-- 动画时间 -->
+        <attr name="slide_animation_time" format="integer" />
+        <!-- 左侧滑动菜单，还是右侧滑动菜单 -->
+        <attr name="slide_mode" format="enum">
+            <enum name="none" value="0" />
+            <enum name="left" value="1" />
+            <enum name="right" value="2" />
+            <enum name="both" value="3" />
+        </attr>
+        <!-- 左侧滑动菜单的模式 -->
+        <attr name="slide_left_action" format="enum">
+            <enum name="scroll" value="0" />
+            <enum name="reveal" value="1" />
+        </attr>
+        <!-- 右侧滑动菜单的模式 -->
+        <attr name="slide_right_action" format="enum">
+            <enum name="scroll" value="0" />
+            <enum name="reveal" value="1" />
+        </attr>
+    </declare-styleable>
+
+    <item name="slide_id_content_view" type="id" />
+    <item name="slide_id_left_view" type="id" />
+    <item name="slide_id_right_view" type="id" />
+
+</resources>
