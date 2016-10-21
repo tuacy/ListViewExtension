@@ -3,4 +3,7 @@
 
     <string name="slide_menu">slide menu</string>
     <string name="slide_delete">slide delete</string>
+    <string name="detail">Detail</string>
+    <string name="delete">Delete</string>
+    <string name="cancel">Cancel</string>
 </resources>

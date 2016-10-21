@@ -10,18 +10,22 @@ import android.widget.RelativeLayout;
  */
 public class SlideMenuItemLayout extends RelativeLayout {
 
-	private View mSlideLeftView;
-	private View mSlideRightView;
+	private Context                mContext;
+	private View                   mSlideLeftView;
+	private View                   mSlideRightView;
+	private SlideMenuContentLayout mSlideContentView;
+	private SlideMenuAction        mSlideLeftAction;
+	private SlideMenuAction        mSlideRightAction;
 
-	public SlideMenuItemLayout(Context context) {
-		this(context, null);
-	}
-
-	public SlideMenuItemLayout(Context context, AttributeSet attrs) {
-		this(context, attrs, 0);
-	}
-
-	public SlideMenuItemLayout(Context context, AttributeSet attrs, int defStyleAttr) {
-		super(context, attrs, defStyleAttr);
+	public SlideMenuItemLayout(Context context,
+							   SlideMenuAction slideLeftAction,
+							   SlideMenuAction slideRightAction,
+							   int contentId,
+							   int leftId,
+							   int rightId) {
+		super(context);
+		mContext = context;
+		mSlideLeftAction = slideLeftAction;
+		mSlideRightAction = slideRightAction;
 	}
 }
