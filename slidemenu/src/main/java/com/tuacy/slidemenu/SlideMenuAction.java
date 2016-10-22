@@ -14,7 +14,7 @@ public enum SlideMenuAction {
 		return getDefault();
 	}
 
-	static SlideMenuAction getDefault() {
+	public static SlideMenuAction getDefault() {
 		return SCROLL;
 	}
 

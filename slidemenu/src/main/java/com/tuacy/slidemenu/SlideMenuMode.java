@@ -17,7 +17,7 @@ public enum SlideMenuMode {
 		return getDefault();
 	}
 
-	static SlideMenuMode getDefault() {
+	public static SlideMenuMode getDefault() {
 		return NONE;
 	}
 
