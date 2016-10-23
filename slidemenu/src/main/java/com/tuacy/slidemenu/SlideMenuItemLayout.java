@@ -144,22 +144,22 @@ public class SlideMenuItemLayout extends RelativeLayout {
 	@Override
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 		super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-		int parentWidthSpec = MeasureSpec.makeMeasureSpec(getMeasuredWidth(), MeasureSpec.EXACTLY);
-		int parentHeight = MeasureSpec.makeMeasureSpec(getMeasuredHeight(), MeasureSpec.EXACTLY);
+//		int parentWidthSpec = MeasureSpec.makeMeasureSpec(getMeasuredWidth(), MeasureSpec.EXACTLY);
+//		int parentHeightSpec = MeasureSpec.makeMeasureSpec(getMeasuredHeight(), MeasureSpec.EXACTLY);
 		if (mSlideLeftView != null) {
 			LayoutParams params = (LayoutParams) mSlideLeftView.getLayoutParams();
-			int widthSpec = ViewGroup.getChildMeasureSpec(parentWidthSpec, getPaddingLeft() + getPaddingRight() +
+			int widthSpec = ViewGroup.getChildMeasureSpec(widthMeasureSpec, getPaddingLeft() + getPaddingRight() +
 																		   params.leftMargin + params.rightMargin, params.width);
-			int heightSpec = ViewGroup.getChildMeasureSpec(parentHeight, getPaddingTop() + getPaddingBottom() +
-																		 params.topMargin + params.bottomMargin, params.height);
+			int heightSpec = ViewGroup.getChildMeasureSpec(heightMeasureSpec, getPaddingTop() + getPaddingBottom() +
+																			 params.topMargin + params.bottomMargin, params.height);
 			mSlideLeftView.measure(widthSpec, heightSpec);
 		}
 		if (mSlideRightView != null) {
 			LayoutParams params = (LayoutParams) mSlideRightView.getLayoutParams();
-			int widthSpec = ViewGroup.getChildMeasureSpec(parentWidthSpec, getPaddingLeft() + getPaddingRight() +
+			int widthSpec = ViewGroup.getChildMeasureSpec(widthMeasureSpec, getPaddingLeft() + getPaddingRight() +
 																		   params.leftMargin + params.rightMargin, params.width);
-			int heightSpec = ViewGroup.getChildMeasureSpec(parentHeight, getPaddingTop() + getPaddingBottom() +
-																		 params.topMargin + params.bottomMargin, params.height);
+			int heightSpec = ViewGroup.getChildMeasureSpec(heightMeasureSpec, getPaddingTop() + getPaddingBottom() +
+																			 params.topMargin + params.bottomMargin, params.height);
 			mSlideRightView.measure(widthSpec, heightSpec);
 		}
 
@@ -199,4 +199,17 @@ public class SlideMenuItemLayout extends RelativeLayout {
 			}
 		}
 	}
+
+	public SlideMenuContentLayout getContentLayout() {
+		return mSlideContentView;
+	}
+
+	public View getSlideLeftView() {
+		return mSlideLeftView;
+	}
+
+	public View getSlideRightView() {
+		return mSlideRightView;
+	}
+
 }
