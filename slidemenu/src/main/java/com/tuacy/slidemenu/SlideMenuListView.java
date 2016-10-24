@@ -6,7 +6,6 @@ import android.content.res.TypedArray;
 import android.database.DataSetObserver;
 import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AbsListView;
@@ -111,7 +110,16 @@ public class SlideMenuListView extends ListView {
 			int action = MotionEventCompat.getActionMasked(ev);
 			if (action == MotionEvent.ACTION_DOWN) {
 				int downPosition = pointToPosition((int) ev.getX(), (int) ev.getY());
-				//TODO:
+				int openedPosition = mTouchManager.getOpenedPosition();
+				if (openedPosition != INVALID_POSITION) {
+					if (mTouchManager.isSliding()) {
+						return false;
+					}
+					if (downPosition != openedPosition) {
+						mTouchManager.closeOpenedItem();
+						return false;
+					}
+				}
 			}
 		}
 		return super.dispatchTouchEvent(ev);

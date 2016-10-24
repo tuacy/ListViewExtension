@@ -12,7 +12,6 @@ import android.widget.RelativeLayout;
  */
 public class SlideMenuItemLayout extends RelativeLayout {
 
-	private Context                mContext;
 	private View                   mSlideLeftView;
 	private View                   mSlideRightView;
 	private SlideMenuContentLayout mSlideContentView;
@@ -26,7 +25,6 @@ public class SlideMenuItemLayout extends RelativeLayout {
 							   int leftId,
 							   int rightId) {
 		super(context);
-		mContext = context;
 		mSlideLeftAction = slideLeftAction;
 		mSlideRightAction = slideRightAction;
 		/**
@@ -39,19 +37,19 @@ public class SlideMenuItemLayout extends RelativeLayout {
 	private void init(int left, int content, int right) {
 		View leftView = null;
 		if (left != 0) {
-			leftView = LayoutInflater.from(mContext).inflate(left, this, false);
+			leftView = LayoutInflater.from(getContext()).inflate(left, this, false);
 		}
 		addLeftView(leftView);
 
 		View rightView = null;
 		if (right != 0) {
-			rightView = LayoutInflater.from(mContext).inflate(right, this, false);
+			rightView = LayoutInflater.from(getContext()).inflate(right, this, false);
 		}
 		addRightView(rightView);
 
 		View contentView;
 		if (content != 0) {
-			contentView = LayoutInflater.from(mContext).inflate(content, this, false);
+			contentView = LayoutInflater.from(getContext()).inflate(content, this, false);
 		} else {
 			throw new NullPointerException("Slide Menu List Content View Can not Null");
 		}
@@ -106,6 +104,7 @@ public class SlideMenuItemLayout extends RelativeLayout {
 		}
 		rightView.setLayoutParams(params);
 		rightView.setId(R.id.slide_id_right_view);
+		addView(rightView);
 		mSlideRightView = rightView;
 		setViewShow(rightView, false);
 	}
@@ -119,7 +118,7 @@ public class SlideMenuItemLayout extends RelativeLayout {
 			params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
 			params.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
 		}
-		SlideMenuContentLayout realContentView = new SlideMenuContentLayout(mContext);
+		SlideMenuContentLayout realContentView = new SlideMenuContentLayout(getContext());
 		realContentView.addView(contentView, params);
 		realContentView.setId(R.id.slide_id_content_view);
 

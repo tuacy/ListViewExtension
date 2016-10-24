@@ -4,8 +4,6 @@ import static com.nineoldandroids.view.ViewHelper.setTranslationX;
 import static com.nineoldandroids.view.ViewPropertyAnimator.animate;
 
 import android.support.v4.view.MotionEventCompat;
-import android.support.v4.view.ViewPropertyAnimatorListener;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
@@ -58,8 +56,15 @@ class SlideMenuTouchManager implements View.OnTouchListener {
 		return time;
 	}
 
-	private boolean isSliding() {
+	public boolean isSliding() {
 		return mSlideState != SLIDING_STATE_NONE;
+	}
+
+	public int getOpenedPosition() {
+		if (isOpened()) {
+			return mSlideItem.mPosition;
+		}
+		return AbsListView.INVALID_POSITION;
 	}
 
 	private int getPointerIndex(MotionEvent event) {
@@ -85,7 +90,7 @@ class SlideMenuTouchManager implements View.OnTouchListener {
 		}
 	}
 
-	public boolean isOpend() {
+	public boolean isOpened() {
 		return mSlideItem != null && mSlideItem.isOpen();
 	}
 
@@ -180,13 +185,14 @@ class SlideMenuTouchManager implements View.OnTouchListener {
 	}
 
 	public void closeOpenedItem() {
-		if (isOpend()) {
+		if (isOpened()) {
 			autoScroll(mSlideItem.mOffset, false);
 		}
 	}
 
 	private void reset() {
-		//TODO:
+		mSlideItem = null;
+		mSlideState = SLIDING_STATE_NONE;
 	}
 
 	private void slidingFinish() {
