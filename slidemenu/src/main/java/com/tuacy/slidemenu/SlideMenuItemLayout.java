@@ -1,6 +1,7 @@
 package com.tuacy.slidemenu;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -126,7 +127,7 @@ public class SlideMenuItemLayout extends RelativeLayout {
 		mSlideContentView = realContentView;
 	}
 
-	private void setViewShow(View view, boolean show) {
+	public void setViewShow(View view, boolean show) {
 		if (view == null) {
 			return;
 		}
@@ -144,21 +145,21 @@ public class SlideMenuItemLayout extends RelativeLayout {
 	@Override
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 		super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-//		int parentWidthSpec = MeasureSpec.makeMeasureSpec(getMeasuredWidth(), MeasureSpec.EXACTLY);
-//		int parentHeightSpec = MeasureSpec.makeMeasureSpec(getMeasuredHeight(), MeasureSpec.EXACTLY);
+		int parentWidthSpec = MeasureSpec.makeMeasureSpec(getMeasuredWidth(), MeasureSpec.EXACTLY);
+		int parentHeightSpec = MeasureSpec.makeMeasureSpec(getMeasuredHeight(), MeasureSpec.EXACTLY);
 		if (mSlideLeftView != null) {
 			LayoutParams params = (LayoutParams) mSlideLeftView.getLayoutParams();
-			int widthSpec = ViewGroup.getChildMeasureSpec(widthMeasureSpec, getPaddingLeft() + getPaddingRight() +
+			int widthSpec = ViewGroup.getChildMeasureSpec(parentWidthSpec, getPaddingLeft() + getPaddingRight() +
 																		   params.leftMargin + params.rightMargin, params.width);
-			int heightSpec = ViewGroup.getChildMeasureSpec(heightMeasureSpec, getPaddingTop() + getPaddingBottom() +
+			int heightSpec = ViewGroup.getChildMeasureSpec(parentHeightSpec, getPaddingTop() + getPaddingBottom() +
 																			 params.topMargin + params.bottomMargin, params.height);
 			mSlideLeftView.measure(widthSpec, heightSpec);
 		}
 		if (mSlideRightView != null) {
 			LayoutParams params = (LayoutParams) mSlideRightView.getLayoutParams();
-			int widthSpec = ViewGroup.getChildMeasureSpec(widthMeasureSpec, getPaddingLeft() + getPaddingRight() +
+			int widthSpec = ViewGroup.getChildMeasureSpec(parentWidthSpec, getPaddingLeft() + getPaddingRight() +
 																		   params.leftMargin + params.rightMargin, params.width);
-			int heightSpec = ViewGroup.getChildMeasureSpec(heightMeasureSpec, getPaddingTop() + getPaddingBottom() +
+			int heightSpec = ViewGroup.getChildMeasureSpec(parentHeightSpec, getPaddingTop() + getPaddingBottom() +
 																			 params.topMargin + params.bottomMargin, params.height);
 			mSlideRightView.measure(widthSpec, heightSpec);
 		}
@@ -174,12 +175,13 @@ public class SlideMenuItemLayout extends RelativeLayout {
 				/**
 				 * 显示在content view的左边
 				 */
-				mSlideLeftView.layout(mSlideContentView.getLeft() - mSlideLeftView.getMeasuredWidth(), top,
-									  mSlideContentView.getLeft(), top + mSlideLeftView.getMeasuredHeight());
-			} else {
-				mSlideLeftView.layout(mSlideContentView.getLeft(), top,
-									  mSlideContentView.getLeft() + mSlideLeftView.getMeasuredWidth(),
+				mSlideLeftView.layout(mSlideContentView.getLeft() - mSlideLeftView.getMeasuredWidth(), top, mSlideContentView.getLeft(),
 									  top + mSlideLeftView.getMeasuredHeight());
+			} else {
+				/**
+				 * 显示在content view的下面并且左边对齐
+				 */
+				mSlideLeftView.layout(mSlideLeftView.getLeft(), top, mSlideLeftView.getRight(), top + mSlideLeftView.getMeasuredHeight());
 			}
 		}
 
@@ -187,15 +189,16 @@ public class SlideMenuItemLayout extends RelativeLayout {
 			int top = (b - t - mSlideRightView.getMeasuredHeight()) / 2;
 			if (mSlideRightAction == SlideMenuAction.SCROLL) {
 				/**
-				 * 显示在content view的左边
+				 * 显示在content view的右边
 				 */
-				mSlideRightView.layout(mSlideContentView.getRight(), top,
-									   mSlideContentView.getRight() + mSlideRightView.getMeasuredWidth(),
-									   top + mSlideLeftView.getMeasuredHeight());
+				mSlideRightView.layout(mSlideContentView.getRight(), top, mSlideContentView.getRight() + mSlideRightView.getMeasuredWidth(),
+									   top + mSlideRightView.getMeasuredHeight());
 			} else {
-				mSlideRightView.layout(mSlideContentView.getRight() - mSlideRightView.getMeasuredWidth(), top,
-									  mSlideContentView.getRight(),
-									  top + mSlideLeftView.getMeasuredHeight());
+				/**
+				 * 显示在content view的下面并且右边对齐
+				 */
+				mSlideRightView.layout(mSlideRightView.getLeft(), top, mSlideRightView.getRight(),
+									   top + mSlideRightView.getMeasuredHeight());
 			}
 		}
 	}

@@ -6,6 +6,7 @@ import android.content.res.TypedArray;
 import android.database.DataSetObserver;
 import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AbsListView;
@@ -185,6 +186,18 @@ public class SlideMenuListView extends ListView {
 
 	public boolean isScrolling() {
 		return mIsInScrolling;
+	}
+
+	public SlideMenuAction getLeftSlideMenuAction() {
+		return mLeftSlideAction;
+	}
+
+	public SlideMenuAction getRightSlideMenuAction() {
+		return mRightSlideAction;
+	}
+
+	public long getAnimationTime() {
+		return mAnimationTime;
 	}
 
 
