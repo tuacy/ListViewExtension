@@ -17,7 +17,6 @@ import com.tuacy.slidemenu.adapter.SlideMenuBaseAdapter;
 
 public class SlideMenuListView extends ListView {
 
-	private Context               mContext;
 	private int                   mAnimationTime;
 	private SlideMenuMode         mSlideMenuMode;
 	private SlideMenuAction       mLeftSlideAction;
@@ -93,7 +92,10 @@ public class SlideMenuListView extends ListView {
 
 		@Override
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-			//TODO:
+			if (mTouchManager.isOpened()) {
+				mTouchManager.closeOpenedItem();
+				return;
+			}
 			if (mOnItemClickListener != null) {
 				mOnItemClickListener.onItemClick(parent, view, position, id);
 			}

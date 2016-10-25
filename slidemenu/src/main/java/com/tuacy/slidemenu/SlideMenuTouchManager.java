@@ -4,6 +4,7 @@ import static com.nineoldandroids.view.ViewHelper.setTranslationX;
 import static com.nineoldandroids.view.ViewPropertyAnimator.animate;
 
 import android.support.v4.view.MotionEventCompat;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
@@ -39,6 +40,7 @@ class SlideMenuTouchManager implements View.OnTouchListener {
 	private int               mTouchSlop;
 	private long              mConfigShortAnimationTime;
 	private SlideItem         mSlideItem;
+	private MotionEvent       mPreUpEvent;
 
 	public SlideMenuTouchManager(SlideMenuListView slideListView) {
 		mSlideMenuListView = slideListView;
@@ -198,7 +200,6 @@ class SlideMenuTouchManager implements View.OnTouchListener {
 	private void slidingFinish() {
 		mSlideState = SLIDING_STATE_NONE;
 		if (mSlideItem.mPreOffset != mSlideItem.mOffset) {
-			//TODO:
 			if (mSlideItem.mPreOffset != 0) {
 				boolean left = mSlideItem.mPreOffset > 0 && mSlideItem.mPreOffset <= mSlideItem.mMaxOffset;
 				mSlideMenuListView.notifySlideMenuClose(mSlideItem.mPosition, left);
@@ -207,16 +208,36 @@ class SlideMenuTouchManager implements View.OnTouchListener {
 				boolean left = mSlideItem.mOffset > 0 && mSlideItem.mOffset <= mSlideItem.mMaxOffset;
 				mSlideMenuListView.notifySlideMenuOpen(mSlideItem.mPosition, left);
 			}
+			//TODO:
 		}
 		if (mSlideItem.mOffset != 0) {
+			/**
+			 * slide menu 是打开的状态
+			 */
 			mSlideItem.mContentLayout.setMenuOpenState(true);
 			mSlideItem.mPreOffset = mSlideItem.mOffset;
-			mSlideItem.mPreDelatX = 0;
+			mSlideItem.mPreDistanceX = 0;
 		} else {
+			/**
+			 * slide menu 是关闭的状态
+			 */
 			mSlideItem.mContentLayout.setMenuOpenState(false);
+			/**
+			 * 避免过度绘制
+			 */
 			mSlideItem.mItemLayout.setViewShow(mSlideItem.mLeftView, false);
 			mSlideItem.mItemLayout.setViewShow(mSlideItem.mRightView, false);
+			mSlideItem.mContentLayout.setSelected(false);
+			mSlideItem.mItemLayout.setSelected(false);
 			mSlideItem = null;
+			if (mPreUpEvent != null) {
+				/**
+				 * 当菜单关闭的时候，给一个ACTION_CANCEL事件到ListView，reset一些selector的状态
+				 */
+				MotionEvent cancelEvent = MotionEvent.obtain(mPreUpEvent);
+				cancelEvent.setAction(MotionEvent.ACTION_CANCEL | (mPreUpEvent.getActionIndex() << MotionEvent.ACTION_POINTER_INDEX_SHIFT));
+				mSlideMenuListView.onTouchEvent(cancelEvent);
+			}
 		}
 	}
 
@@ -303,9 +324,9 @@ class SlideMenuTouchManager implements View.OnTouchListener {
 					if (mSlideItem == null) {
 						mSlideItem = new SlideItem(mDownPosition);
 					}
-					int deltaX = (int) event.getX(pointerIndex) - mDownMotionX;
-					int nextOffset = deltaX - mSlideItem.mPreDelatX + mSlideItem.mOffset;
-					mSlideItem.mPreDelatX = deltaX;
+					int distanceX = (int) event.getX(pointerIndex) - mDownMotionX;
+					int nextOffset = distanceX - mSlideItem.mPreDistanceX + mSlideItem.mOffset;
+					mSlideItem.mPreDistanceX = distanceX;
 					if (nextOffset < mSlideItem.mMinOffset) {
 						nextOffset = mSlideItem.mMinOffset;
 					}
@@ -337,6 +358,7 @@ class SlideMenuTouchManager implements View.OnTouchListener {
 				}
 				break;
 			case MotionEvent.ACTION_UP:
+				mPreUpEvent = event;
 				if (mDownPosition == AbsListView.INVALID_POSITION) {
 					break;
 				}
@@ -430,7 +452,7 @@ class SlideMenuTouchManager implements View.OnTouchListener {
 		 * 记录上一次Slide结束时距离（要不是左边菜单打开了，要不是右边菜单打开了，要不就是都没打开）值呢就三种情况mMaxOffset, mMinOffset, 0 注意赋值的时机
 		 */
 		private       int                    mPreOffset;
-		private       int                    mPreDelatX;
+		private       int                    mPreDistanceX;
 
 		SlideItem(int position) {
 			mPosition = position;
