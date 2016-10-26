@@ -1,7 +1,6 @@
 package com.tuacy.slidemenu;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,14 +8,34 @@ import android.widget.RelativeLayout;
 
 /**
  * 包含三个view, 左边slide的view，content view, 右边slide view
+ * 注意，这里在测量者三个View高度的时候，是以Content View的LayoutParams为基础的
  */
 public class SlideMenuItemLayout extends RelativeLayout {
 
+	/**
+	 * 左边的菜单View
+	 */
 	private View                   mSlideLeftView;
+	/**
+	 * 右边的菜单View
+	 */
 	private View                   mSlideRightView;
+	/**
+	 * 实际的内容View
+	 */
 	private SlideMenuContentLayout mSlideContentView;
+	/**
+	 * 左边菜单的展开模式
+	 */
 	private SlideMenuAction        mSlideLeftAction;
+	/**
+	 * 右边菜单的展开模式
+	 */
 	private SlideMenuAction        mSlideRightAction;
+	/**
+	 * item的LayoutParams的高度，Content View为准
+	 */
+	private int                    mItemParamHeight;
 
 	public SlideMenuItemLayout(Context context,
 							   SlideMenuAction slideLeftAction,
@@ -28,31 +47,48 @@ public class SlideMenuItemLayout extends RelativeLayout {
 		mSlideLeftAction = slideLeftAction;
 		mSlideRightAction = slideRightAction;
 		/**
-		 * 如果不设置，当item中含有button之类的控件的时候，item相应不了点击事件。
+		 * 如果不设置，当item中含有button之类的控件的时候，item响应不了点击事件。
 		 */
 		setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
 		init(leftId, contentId, rightId);
 	}
 
 	private void init(int left, int content, int right) {
+		/**
+		 * 获取左侧的菜单View
+		 */
 		View leftView = null;
 		if (left != 0) {
 			leftView = LayoutInflater.from(getContext()).inflate(left, this, false);
 		}
-		addLeftView(leftView);
 
+		/**
+		 * 获取右侧的菜单View
+		 */
 		View rightView = null;
 		if (right != 0) {
 			rightView = LayoutInflater.from(getContext()).inflate(right, this, false);
 		}
-		addRightView(rightView);
 
+		/**
+		 * 获取Content View
+		 */
 		View contentView;
 		if (content != 0) {
 			contentView = LayoutInflater.from(getContext()).inflate(content, this, false);
 		} else {
 			throw new NullPointerException("Slide Menu List Content View Can not Null");
 		}
+		/**
+		 * 高度，我们一Content View的高度为基准。Content View的高度我们肯定是给确切的值的
+		 */
+		RelativeLayout.LayoutParams params = (LayoutParams) contentView.getLayoutParams();
+		mItemParamHeight = params.height;
+		/**
+		 * 添加三个View，注意顺序
+		 */
+		addLeftView(leftView);
+		addRightView(rightView);
 		addContentView(contentView);
 
 	}
@@ -79,6 +115,7 @@ public class SlideMenuItemLayout extends RelativeLayout {
 				params.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
 				break;
 		}
+		params.height = mItemParamHeight;
 		leftView.setLayoutParams(params);
 		leftView.setId(R.id.slide_id_left_view);
 		addView(leftView);
@@ -102,6 +139,7 @@ public class SlideMenuItemLayout extends RelativeLayout {
 				params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
 				break;
 		}
+		params.height = mItemParamHeight;
 		rightView.setLayoutParams(params);
 		rightView.setId(R.id.slide_id_right_view);
 		addView(rightView);
@@ -147,6 +185,9 @@ public class SlideMenuItemLayout extends RelativeLayout {
 		int parentWidthSpec = MeasureSpec.makeMeasureSpec(getMeasuredWidth(), MeasureSpec.EXACTLY);
 		int parentHeightSpec = MeasureSpec.makeMeasureSpec(getMeasuredHeight(), MeasureSpec.EXACTLY);
 		if (mSlideLeftView != null) {
+			/**
+			 * 测量左侧菜单
+			 */
 			LayoutParams params = (LayoutParams) mSlideLeftView.getLayoutParams();
 			int widthSpec = ViewGroup.getChildMeasureSpec(parentWidthSpec, getPaddingLeft() + getPaddingRight() +
 																		   params.leftMargin + params.rightMargin, params.width);
@@ -155,6 +196,9 @@ public class SlideMenuItemLayout extends RelativeLayout {
 			mSlideLeftView.measure(widthSpec, heightSpec);
 		}
 		if (mSlideRightView != null) {
+			/**
+			 * 测量右侧菜单
+			 */
 			LayoutParams params = (LayoutParams) mSlideRightView.getLayoutParams();
 			int widthSpec = ViewGroup.getChildMeasureSpec(parentWidthSpec, getPaddingLeft() + getPaddingRight() +
 																		   params.leftMargin + params.rightMargin, params.width);
@@ -169,6 +213,9 @@ public class SlideMenuItemLayout extends RelativeLayout {
 	protected void onLayout(boolean changed, int l, int t, int r, int b) {
 		super.onLayout(changed, l, t, r, b);
 		if (mSlideLeftView != null) {
+			/**
+			 * 布局左侧菜单
+			 */
 			int top = (b - t - mSlideLeftView.getMeasuredHeight()) / 2;
 			if (mSlideLeftAction == SlideMenuAction.SCROLL) {
 				/**
@@ -185,6 +232,9 @@ public class SlideMenuItemLayout extends RelativeLayout {
 		}
 
 		if (mSlideRightView != null) {
+			/**
+			 * 布局右侧菜单
+			 */
 			int top = (b - t - mSlideRightView.getMeasuredHeight()) / 2;
 			if (mSlideRightAction == SlideMenuAction.SCROLL) {
 				/**

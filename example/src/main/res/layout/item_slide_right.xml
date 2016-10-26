@@ -8,13 +8,13 @@
     <Button
         android:id="@+id/button_list_right_delete"
         android:layout_width="wrap_content"
-        android:layout_height="70dp"
+        android:layout_height="wrap_content"
         android:text="@string/delete" />
 
     <Button
         android:id="@+id/button_list_right_cancel"
         android:layout_width="wrap_content"
-        android:layout_height="70dp"
+        android:layout_height="wrap_content"
         android:text="@string/cancel" />
 
 </LinearLayout>

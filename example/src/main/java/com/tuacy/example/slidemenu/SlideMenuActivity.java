@@ -9,7 +9,6 @@ import com.tuacy.example.R;
 import com.tuacy.example.base.BaseActivity;
 import com.tuacy.example.slidemenu.adapter.SlideMenuListAdapter;
 import com.tuacy.slidemenu.SlideMenuListView;
-import com.tuacy.slidemenu.SlideMenuMode;
 
 import java.util.ArrayList;
 

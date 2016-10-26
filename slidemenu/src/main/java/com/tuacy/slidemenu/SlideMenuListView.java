@@ -106,6 +106,30 @@ public class SlideMenuListView extends ListView {
 		return mAdapter != null && mSlideMenuMode != SlideMenuMode.NONE;
 	}
 
+	/**
+	 * 内部已经用了一个mInnerOnItemClickListener为了保证外部setOnItemClickListener()可用
+	 */
+	@Override
+	public void setOnItemClickListener(OnItemClickListener listener) {
+		if (listener != mInnerOnItemClickListener) {
+			mOnItemClickListener = listener;
+		} else {
+			super.setOnItemClickListener(listener);
+		}
+	}
+
+	/**
+	 * 内部已经用了一个mInnerOnScrollListener为了保证外部setOnScrollListener()可用
+	 */
+	@Override
+	public void setOnScrollListener(OnScrollListener listener) {
+		if (listener != mInnerOnScrollListener) {
+			mOnScrollListener = listener;
+		} else {
+			super.setOnScrollListener(listener);
+		}
+	}
+
 	@Override
 	public boolean dispatchTouchEvent(MotionEvent ev) {
 		if (isSlideEnable() && isEnabled()) {

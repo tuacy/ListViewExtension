@@ -7,7 +7,10 @@ import android.widget.LinearLayout;
 
 public class SlideMenuContentLayout extends LinearLayout {
 
-	private boolean mIsOpen;
+	/**
+	 * 当前item的菜单是否是打开的状态
+	 */
+	private boolean mIsMenuOpen;
 
 	public SlideMenuContentLayout(Context context) {
 		super(context);
@@ -23,13 +26,16 @@ public class SlideMenuContentLayout extends LinearLayout {
 
 	@Override
 	public boolean dispatchTouchEvent(MotionEvent ev) {
-		if (mIsOpen) {
+		/**
+		 * 如果item的菜单是打开的状态，事件不用往里面传递了
+		 */
+		if (mIsMenuOpen) {
 			return false;
 		}
 		return super.dispatchTouchEvent(ev);
 	}
 
 	public void setMenuOpenState(boolean isOpen) {
-		mIsOpen = isOpen;
+		mIsMenuOpen = isOpen;
 	}
 }
