@@ -1,6 +1,5 @@
 package com.tuacy.slidemenu;
 
-
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.database.DataSetObserver;
@@ -17,22 +16,60 @@ import com.tuacy.slidemenu.adapter.SlideMenuBaseAdapter;
 
 public class SlideMenuListView extends ListView {
 
+	/**
+	 * 当手指抬起的时候，菜单自动打开或者关闭需要的时间
+	 */
 	private int                   mAnimationTime;
+	/**
+	 * 统一设定的菜单的模式（左侧可以打开，右侧可以打开，都可以打开，都不可以打开），也可以在Adapter里面单独设置每项
+	 */
 	private SlideMenuMode         mSlideMenuMode;
+	/**
+	 * 左侧菜单，是scroll还是reveal
+	 */
 	private SlideMenuAction       mLeftSlideAction;
+	/**
+	 * 右侧菜单，是scroll还是reveal
+	 */
 	private SlideMenuAction       mRightSlideAction;
+	/**
+	 * 触摸事件管理
+	 */
 	private SlideMenuTouchManager mTouchManager;
+	/**
+	 * Slide菜单打开关闭事件监听
+	 */
 	private OnSlideMenuListener   mSlideMenuListener;
-	// extern Listener
+	/**
+	 * ListView Item点击事件
+	 */
 	private OnItemClickListener   mOnItemClickListener;
+	/**
+	 * ListView滚动事件监听
+	 */
 	private OnScrollListener      mOnScrollListener;
-	private boolean               mIsInScrolling;
+	/**
+	 * ListView是否处于滚动状态
+	 */
+	private boolean               mScrolling;
+	/**
+	 * ListView的适配器
+	 */
 	private SlideMenuBaseAdapter  mAdapter;
 
+	/**
+	 * 菜单打开关闭的接口
+	 */
 	public interface OnSlideMenuListener {
 
+		/**
+		 * 菜单打开
+		 */
 		void onSlideMenuOpen(int position, boolean left);
 
+		/**
+		 * 菜单关闭
+		 */
 		void onSlideMenuClose(int position, boolean left);
 
 	}
@@ -61,9 +98,9 @@ public class SlideMenuListView extends ListView {
 		}
 		mTouchManager = new SlideMenuTouchManager(this);
 		setOnTouchListener(mTouchManager);
-		// You can use setOnScrollListener() in your own code
+		// 设置内部使用的滑动监听
 		setOnScrollListener(mInnerOnScrollListener);
-		// You can use setOnItemClickListener() in your own code
+		// 设置内部item点击事件
 		setOnItemClickListener(mInnerOnItemClickListener);
 	}
 
@@ -71,9 +108,9 @@ public class SlideMenuListView extends ListView {
 		@Override
 		public void onScrollStateChanged(AbsListView view, int scrollState) {
 			if (scrollState == SCROLL_STATE_IDLE) {
-				mIsInScrolling = false;
+				mScrolling = false;
 			} else {
-				mIsInScrolling = true;
+				mScrolling = true;
 			}
 			if (mOnScrollListener != null) {
 				mOnScrollListener.onScrollStateChanged(view, scrollState);
@@ -102,9 +139,12 @@ public class SlideMenuListView extends ListView {
 		}
 	};
 
-	public boolean isSlideEnable() {
-		return mAdapter != null && mSlideMenuMode != SlideMenuMode.NONE;
-	}
+	//	/**
+	//	 * 是否允许Slide Menu
+	//	 */
+	//	public boolean isSlideEnable() {
+	//		return mAdapter != null && mSlideMenuMode != SlideMenuMode.NONE;
+	//	}
 
 	/**
 	 * 内部已经用了一个mInnerOnItemClickListener为了保证外部setOnItemClickListener()可用
@@ -132,13 +172,16 @@ public class SlideMenuListView extends ListView {
 
 	@Override
 	public boolean dispatchTouchEvent(MotionEvent ev) {
-		if (isSlideEnable() && isEnabled()) {
+		if (isEnabled()) {
 			int action = MotionEventCompat.getActionMasked(ev);
 			if (action == MotionEvent.ACTION_DOWN) {
 				int downPosition = pointToPosition((int) ev.getX(), (int) ev.getY());
 				int openedPosition = mTouchManager.getOpenedPosition();
+				/**
+				 * 之前已经有打开的菜单了
+				 */
 				if (openedPosition != INVALID_POSITION) {
-					if (mTouchManager.isSliding()) {
+					if (mTouchManager.sliding()) {
 						return false;
 					}
 					if (downPosition != openedPosition) {
@@ -153,7 +196,7 @@ public class SlideMenuListView extends ListView {
 
 	@Override
 	public boolean onInterceptTouchEvent(MotionEvent ev) {
-		if (isEnabled() && isSlideEnable()) {
+		if (isEnabled()) {
 			return mTouchManager.onInterceptTouchEvent(ev);
 		}
 		return super.onInterceptTouchEvent(ev);
@@ -219,7 +262,7 @@ public class SlideMenuListView extends ListView {
 	}
 
 	public boolean isScrolling() {
-		return mIsInScrolling;
+		return mScrolling;
 	}
 
 	public SlideMenuAction getLeftSlideMenuAction() {

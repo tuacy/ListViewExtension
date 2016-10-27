@@ -4,7 +4,6 @@ import static com.nineoldandroids.view.ViewHelper.setTranslationX;
 import static com.nineoldandroids.view.ViewPropertyAnimator.animate;
 
 import android.support.v4.view.MotionEventCompat;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
@@ -42,7 +41,7 @@ class SlideMenuTouchManager implements View.OnTouchListener {
 	private SlideItem         mSlideItem;
 	private MotionEvent       mPreUpEvent;
 
-	public SlideMenuTouchManager(SlideMenuListView slideListView) {
+	SlideMenuTouchManager(SlideMenuListView slideListView) {
 		mSlideMenuListView = slideListView;
 		mSlideState = SLIDING_STATE_NONE;
 		ViewConfiguration configuration = ViewConfiguration.get(slideListView.getContext());
@@ -58,11 +57,14 @@ class SlideMenuTouchManager implements View.OnTouchListener {
 		return time;
 	}
 
-	public boolean isSliding() {
+	boolean sliding() {
 		return mSlideState != SLIDING_STATE_NONE;
 	}
 
-	public int getOpenedPosition() {
+	/**
+	 * 获取slide menu打开的item对应的position
+	 */
+	int getOpenedPosition() {
 		if (isOpened()) {
 			return mSlideItem.mPosition;
 		}
@@ -92,7 +94,7 @@ class SlideMenuTouchManager implements View.OnTouchListener {
 		}
 	}
 
-	public boolean isOpened() {
+	boolean isOpened() {
 		return mSlideItem != null && mSlideItem.isOpen();
 	}
 
@@ -186,7 +188,7 @@ class SlideMenuTouchManager implements View.OnTouchListener {
 
 	}
 
-	public void closeOpenedItem() {
+	void closeOpenedItem() {
 		if (isOpened()) {
 			autoScroll(mSlideItem.mOffset, false);
 		}
@@ -251,7 +253,7 @@ class SlideMenuTouchManager implements View.OnTouchListener {
 				/**
 				 * 如果还在滑动，事件没必要往下传递了，可以直接拦截下来
 				 */
-				if (isSliding()) {
+				if (sliding()) {
 					return true;
 				}
 				/**
@@ -264,13 +266,19 @@ class SlideMenuTouchManager implements View.OnTouchListener {
 				if (position == AbsListView.INVALID_POSITION) {
 					break;
 				}
-				//TODO:判断是否可以Slide
-				//TODO:Build.VERSION.SDK_INT <= Build.VERSION_CODES.HONEYCOMB
-				mDownPosition = position;
-				mActivePointerId = event.getPointerId(0);
-				mDownMotionX = (int) event.getX();
-				resetVelocityTracker();
-				mVelocityTracker.addMovement(event);
+				/**
+				 * 判断当前down对应的item时候可以slide
+				 */
+				boolean allowSlide = mSlideMenuListView.getSlideAdapter().isEnabled(position) &&
+									 mSlideMenuListView.getSlideAdapter().getPositionSlideMode(position) != SlideMenuMode.NONE;
+				if (allowSlide) {
+					mDownPosition = position;
+					mActivePointerId = event.getPointerId(0);
+					mDownMotionX = (int) event.getX();
+					resetVelocityTracker();
+					mVelocityTracker.addMovement(event);
+					// 注意哦，这里光通过ACTION_DOWN我们是是判断不了是否要拦截的
+				}
 				break;
 			case MotionEvent.ACTION_MOVE:
 				if (mDownPosition == AbsListView.INVALID_POSITION) {
@@ -302,13 +310,21 @@ class SlideMenuTouchManager implements View.OnTouchListener {
 
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
-		if (!mSlideMenuListView.isEnabled() || !mSlideMenuListView.isSlideEnable()) {
+		if (mDownPosition == AbsListView.INVALID_POSITION) {
+			return false;
+		}
+		boolean allowSlide = mSlideMenuListView.getSlideAdapter().isEnabled(mDownPosition) &&
+							 mSlideMenuListView.getSlideAdapter().getPositionSlideMode(mDownPosition) != SlideMenuMode.NONE;
+		/**
+		 * 不允许slide menu
+		 */
+		if (!allowSlide) {
 			return false;
 		}
 		int action = MotionEventCompat.getActionMasked(event);
 		switch (action) {
 			case MotionEvent.ACTION_DOWN:
-				if (isSliding()) {
+				if (sliding()) {
 					return true;
 				}
 				break;

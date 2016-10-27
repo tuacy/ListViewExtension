@@ -29,10 +29,7 @@ public class SlideMenuContentLayout extends LinearLayout {
 		/**
 		 * 如果item的菜单是打开的状态，事件不用往里面传递了
 		 */
-		if (mIsMenuOpen) {
-			return false;
-		}
-		return super.dispatchTouchEvent(ev);
+		return !mIsMenuOpen && super.dispatchTouchEvent(ev);
 	}
 
 	public void setMenuOpenState(boolean isOpen) {
