@@ -98,6 +98,11 @@ class SlideMenuTouchManager implements View.OnTouchListener {
 		return mSlideItem != null && mSlideItem.isOpen();
 	}
 
+	/**
+	 * 随着手指滑动item，这里要注意参数
+	 *
+	 * @param offset：要时刻注意这个offset是相对于最初位置的偏移。并不是相对于Down的位置。
+	 */
 	private void move(int offset) {
 		// 相对原始位置偏移
 		setTranslationX(mSlideItem.mContentLayout, offset);
@@ -140,15 +145,21 @@ class SlideMenuTouchManager implements View.OnTouchListener {
 		}
 	}
 
+	/**
+	 * 自动滑动，自动关闭或者打开侧滑菜单
+	 *
+	 * @param offset：相对于初始位置当前的偏移量
+	 * @param open：准备打开还是关闭菜单
+	 */
 	private void autoScroll(final int offset, final boolean open) {
 		mSlideState = SLIDING_STATE_AUTO;
 		int moveTo;
 		if (offset < 0) {
-			//右侧菜单展开
+			//右侧菜单被展开
 			/**
 			 * moveTo <= 0
 			 */
-			moveTo = open ? mSlideItem.mMinOffset : 0;
+			moveTo = open ? mSlideItem.mMinOffsetInitial : 0;
 			SlideMenuAction rightAction = mSlideMenuListView.getRightSlideMenuAction();
 			if (mSlideItem.mRightView != null && rightAction == SlideMenuAction.SCROLL) {
 				/**
@@ -157,8 +168,8 @@ class SlideMenuTouchManager implements View.OnTouchListener {
 				animate(mSlideItem.mRightView).translationX(moveTo).setDuration(getAnimationTime());
 			}
 		} else {
-			//左侧菜单展开
-			moveTo = open ? mSlideItem.mMaxOffset : 0;
+			//左侧菜单被展开
+			moveTo = open ? mSlideItem.mMaxOffsetInitial : 0;
 			SlideMenuAction leftAction = mSlideMenuListView.getLeftSlideMenuAction();
 			if (mSlideItem.mLeftView != null && leftAction == SlideMenuAction.SCROLL) {
 				animate(mSlideItem.mLeftView).translationX(moveTo).setDuration(getAnimationTime());
@@ -175,12 +186,12 @@ class SlideMenuTouchManager implements View.OnTouchListener {
 				}
 				if (open) {
 					if (offset < 0) {
-						mSlideItem.mOffset = mSlideItem.mMinOffset;
+						mSlideItem.mOffsetInitial = mSlideItem.mMinOffsetInitial;
 					} else {
-						mSlideItem.mOffset = mSlideItem.mMaxOffset;
+						mSlideItem.mOffsetInitial = mSlideItem.mMaxOffsetInitial;
 					}
 				} else {
-					mSlideItem.mOffset = 0;
+					mSlideItem.mOffsetInitial = 0;
 				}
 				slidingFinish();
 			}
@@ -190,7 +201,7 @@ class SlideMenuTouchManager implements View.OnTouchListener {
 
 	void closeOpenedItem() {
 		if (isOpened()) {
-			autoScroll(mSlideItem.mOffset, false);
+			autoScroll(mSlideItem.mOffsetInitial, false);
 		}
 	}
 
@@ -201,24 +212,24 @@ class SlideMenuTouchManager implements View.OnTouchListener {
 
 	private void slidingFinish() {
 		mSlideState = SLIDING_STATE_NONE;
-		if (mSlideItem.mPreOffset != mSlideItem.mOffset) {
-			if (mSlideItem.mPreOffset != 0) {
-				boolean left = mSlideItem.mPreOffset > 0 && mSlideItem.mPreOffset <= mSlideItem.mMaxOffset;
+		if (mSlideItem.mOpenStateOffsetInitial != mSlideItem.mOffsetInitial) {
+			if (mSlideItem.mOpenStateOffsetInitial != 0) {
+				boolean left = mSlideItem.mOpenStateOffsetInitial > 0 && mSlideItem.mOpenStateOffsetInitial <= mSlideItem.mMaxOffsetInitial;
 				mSlideMenuListView.notifySlideMenuClose(mSlideItem.mPosition, left);
 			}
-			if (mSlideItem.mOffset != 0) {
-				boolean left = mSlideItem.mOffset > 0 && mSlideItem.mOffset <= mSlideItem.mMaxOffset;
+			if (mSlideItem.mOffsetInitial != 0) {
+				boolean left = mSlideItem.mOffsetInitial > 0 && mSlideItem.mOffsetInitial <= mSlideItem.mMaxOffsetInitial;
 				mSlideMenuListView.notifySlideMenuOpen(mSlideItem.mPosition, left);
 			}
 			//TODO:
 		}
-		if (mSlideItem.mOffset != 0) {
+		if (mSlideItem.mOffsetInitial != 0) {
 			/**
 			 * slide menu 是打开的状态
 			 */
 			mSlideItem.mContentLayout.setMenuOpenState(true);
-			mSlideItem.mPreOffset = mSlideItem.mOffset;
-			mSlideItem.mPreDistanceX = 0;
+			mSlideItem.mOpenStateOffsetInitial = mSlideItem.mOffsetInitial;
+			mSlideItem.mPreOffsetDown = 0;
 		} else {
 			/**
 			 * slide menu 是关闭的状态
@@ -229,8 +240,6 @@ class SlideMenuTouchManager implements View.OnTouchListener {
 			 */
 			mSlideItem.mItemLayout.setViewShow(mSlideItem.mLeftView, false);
 			mSlideItem.mItemLayout.setViewShow(mSlideItem.mRightView, false);
-			mSlideItem.mContentLayout.setSelected(false);
-			mSlideItem.mItemLayout.setSelected(false);
 			mSlideItem = null;
 			if (mPreUpEvent != null) {
 				/**
@@ -337,21 +346,30 @@ class SlideMenuTouchManager implements View.OnTouchListener {
 				}
 				int pointerIndex = getPointerIndex(event);
 				if (mSlideState == SLIDING_STATE_MANUAL) {
+					/**
+					 * 可以随手指滑动的情况
+					 */
 					if (mSlideItem == null) {
 						mSlideItem = new SlideItem(mDownPosition);
 					}
-					int distanceX = (int) event.getX(pointerIndex) - mDownMotionX;
-					int nextOffset = distanceX - mSlideItem.mPreDistanceX + mSlideItem.mOffset;
-					mSlideItem.mPreDistanceX = distanceX;
-					if (nextOffset < mSlideItem.mMinOffset) {
-						nextOffset = mSlideItem.mMinOffset;
+					/**
+					 * 相对于Down时候的位置
+					 */
+					int offsetDown = (int) event.getX(pointerIndex) - mDownMotionX;
+					int offsetInitial = offsetDown - mSlideItem.mPreOffsetDown + mSlideItem.mOffsetInitial;
+					mSlideItem.mPreOffsetDown = offsetDown;
+					if (offsetInitial < mSlideItem.mMinOffsetInitial) {
+						offsetInitial = mSlideItem.mMinOffsetInitial;
 					}
-					if (nextOffset > mSlideItem.mMaxOffset) {
-						nextOffset = mSlideItem.mMaxOffset;
+					if (offsetInitial > mSlideItem.mMaxOffsetInitial) {
+						offsetInitial = mSlideItem.mMaxOffsetInitial;
 					}
-					if (mSlideItem.mOffset != nextOffset) {
-						mSlideItem.mOffset = nextOffset;
-						move(nextOffset);
+					/**
+					 * 随手指滑动
+					 */
+					if (mSlideItem.mOffsetInitial != offsetInitial) {
+						mSlideItem.mOffsetInitial = offsetInitial;
+						move(offsetInitial);
 					}
 					return true;
 				} else {
@@ -391,8 +409,8 @@ class SlideMenuTouchManager implements View.OnTouchListener {
 					/**
 					 * 当移动的距离是0，左边菜单完全展开，右边菜单完全展开。的情况下。不需要自动滑动了。
 					 */
-					if (mSlideItem.mOffset == 0 || mSlideItem.mOffset == mSlideItem.mMinOffset ||
-						mSlideItem.mOffset == mSlideItem.mMaxOffset) {
+					if (mSlideItem.mOffsetInitial == 0 || mSlideItem.mOffsetInitial == mSlideItem.mMinOffsetInitial ||
+						mSlideItem.mOffsetInitial == mSlideItem.mMaxOffsetInitial) {
 						slidingFinish();
 						return true;
 					}
@@ -404,15 +422,15 @@ class SlideMenuTouchManager implements View.OnTouchListener {
 																	mSlideItem.mPosition - mSlideMenuListView.getHeaderViewsCount());
 					// 菜单最终是需要展开还是关闭
 					boolean shouldOpen = false;
-					if (mSlideItem.mOffset > 0) {
-						// 说明左边的slide 菜单展开了
+					if (mSlideItem.mOffsetInitial > 0) {
+						// 说明左边的slide菜单被我们手动拉开了，这个时候我们就得去判断这个左侧菜单的最终停留位置了
 						if (slideMode == SlideMenuMode.LEFT || slideMode == SlideMenuMode.BOTH) {
 							/**
 							 * 滑动距离超过了四分之一
 							 */
-							boolean distanceGreater = Math.abs(mSlideItem.mOffset - mSlideItem.mPreOffset) >
-													  Math.abs(mSlideItem.mMaxOffset) / (float) 4;
-							if (mSlideItem.mOffset - mSlideItem.mPreOffset > 0) {
+							boolean distanceGreater = Math.abs(mSlideItem.mOffsetInitial - mSlideItem.mOpenStateOffsetInitial) >
+													  Math.abs(mSlideItem.mMaxOffsetInitial) / (float) 4;
+							if (mSlideItem.mOffsetInitial - mSlideItem.mOpenStateOffsetInitial > 0) {
 								// 最终左侧菜单是要打开的
 								shouldOpen = distanceGreater;
 							} else {
@@ -422,16 +440,16 @@ class SlideMenuTouchManager implements View.OnTouchListener {
 					} else {
 						// 说明右边的slide 菜单展开了
 						if (slideMode == SlideMenuMode.RIGHT || slideMode == SlideMenuMode.BOTH) {
-							boolean distanceGreater = Math.abs(mSlideItem.mOffset - mSlideItem.mPreOffset) >
-													  Math.abs(mSlideItem.mMinOffset) / (float) 4;
-							if (mSlideItem.mOffset - mSlideItem.mPreOffset > 0) {
+							boolean distanceGreater = Math.abs(mSlideItem.mOffsetInitial - mSlideItem.mOpenStateOffsetInitial) >
+													  Math.abs(mSlideItem.mMinOffsetInitial) / (float) 4;
+							if (mSlideItem.mOffsetInitial - mSlideItem.mOpenStateOffsetInitial > 0) {
 								shouldOpen = !distanceGreater;
 							} else {
 								shouldOpen = distanceGreater;
 							}
 						}
 					}
-					autoScroll(mSlideItem.mOffset, shouldOpen);
+					autoScroll(mSlideItem.mOffsetInitial, shouldOpen);
 					return true;
 				} else {
 					if (mSlideMenuListView.isScrolling()) {
@@ -452,23 +470,48 @@ class SlideMenuTouchManager implements View.OnTouchListener {
 	 */
 	private class SlideItem {
 
+		/**
+		 * 当前准备Slide Menu的位置
+		 */
 		private       int                    mPosition;
+		/**
+		 * 当前准备Slide Menu的Item View
+		 */
 		private       SlideMenuItemLayout    mItemLayout;
+		/**
+		 * Item View的Content View
+		 */
 		private       SlideMenuContentLayout mContentLayout;
+		/**
+		 * Item View的Left View
+		 */
 		private       View                   mLeftView;
+		/**
+		 * Item View的Right View
+		 */
 		private       View                   mRightView;
-		private final int                    mMaxOffset;
-		private final int                    mMinOffset;
 		/**
-		 * mOffset > 0 : 可以确定是左侧的菜单显示出来了。
-		 * mOffset < 0 : 可以确定是右侧的菜单显示出来了。
+		 * 最大的偏移位置 是大于0的,可以最多往右边滑动的距离 LeftView的宽度
 		 */
-		private       int                    mOffset;
+		private final int                    mMaxOffsetInitial;
 		/**
-		 * 记录上一次Slide结束时距离（要不是左边菜单打开了，要不是右边菜单打开了，要不就是都没打开）值呢就三种情况mMaxOffset, mMinOffset, 0 注意赋值的时机
+		 * 最小的偏移位置 是小于0,可以最多往左边滑动的距离 RightView的宽度
 		 */
-		private       int                    mPreOffset;
-		private       int                    mPreDistanceX;
+		private final int                    mMinOffsetInitial;
+		/**
+		 * 相对于出事位置的偏移量
+		 * mOffsetInitial > 0 : 可以确定是左侧的菜单显示出来了。
+		 * mOffsetInitial < 0 : 可以确定是右侧的菜单显示出来了。
+		 */
+		private       int                    mOffsetInitial;
+		/**
+		 * 当菜单打开的时候，记录的相对初始位置的偏移量
+		 */
+		private       int                    mOpenStateOffsetInitial;
+		/**
+		 * 前一次相对于手指按下的位置
+		 */
+		private       int                    mPreOffsetDown;
 
 		SlideItem(int position) {
 			mPosition = position;
@@ -484,20 +527,23 @@ class SlideMenuTouchManager implements View.OnTouchListener {
 														.getPositionSlideMode(position - mSlideMenuListView.getHeaderViewsCount());
 			if (mLeftView != null && (slideMode == SlideMenuMode.LEFT || slideMode == SlideMenuMode.BOTH)) {
 				// 可以最多往右边滑动的距离
-				mMaxOffset = mLeftView.getWidth();
+				mMaxOffsetInitial = mLeftView.getWidth();
 			} else {
-				mMaxOffset = 0;
+				mMaxOffsetInitial = 0;
 			}
 			if (mRightView != null && (slideMode == SlideMenuMode.RIGHT || slideMode == SlideMenuMode.BOTH)) {
 				// 可以最多往左边滑动的距离
-				mMinOffset = -mRightView.getWidth();
+				mMinOffsetInitial = -mRightView.getWidth();
 			} else {
-				mMinOffset = 0;
+				mMinOffsetInitial = 0;
 			}
 		}
 
 		private boolean isOpen() {
-			return mOffset != 0;
+			/**
+			 * 只要相对初始位置有偏移，认为菜单是打开的。
+			 */
+			return mOffsetInitial != 0;
 		}
 
 	}

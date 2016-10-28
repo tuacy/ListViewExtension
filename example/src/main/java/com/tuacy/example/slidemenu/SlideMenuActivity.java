@@ -20,7 +20,7 @@ public class SlideMenuActivity extends BaseActivity {
 
 	private SlideMenuListView    mSlideMenuList;
 	private SlideMenuListAdapter mAdapter;
-	private ArrayList<String> mListData;
+	private ArrayList<String>    mListData;
 
 	@Override
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
